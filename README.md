@@ -19,8 +19,7 @@ LFW人脸识别数据集官方下载：http://vis-www.cs.umass.edu/lfw/index.htm
 
 ## 使用演示
 ### 训练(```train_embedding.py```)
-假设你已经下载了我提供的数据集，文件夹里的WebFace_train_v1.csv为训练集、LfwPairs.csv为验证集，打开train_embedding.py脚本确认参数后即可运行，部分参数如下。
-该数据集在默认设置下训练40个epoch即可达到最佳准确率，大约88%。
+假设你已经下载了我提供的数据集，文件夹里的WebFace_train_v1.csv为训练集、LfwPairs.csv为验证集，打开train_embedding.py脚本确认参数后即可运行，部分参数如下。该数据集在默认设置下训练40个epoch即可达到最佳准确率，大约88%。
 ```python
 # 训练设备类型
 parser.add_argument('--gpu', default='cuda', help='训练设备类型')
