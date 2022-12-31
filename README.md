@@ -59,7 +59,8 @@ python predict.py --model cspconvnext_t --weights ./models_save/embedding/ss_csp
 
 ## 其他相关
 Simclr：https://arxiv.org/pdf/2002.05709.pdf  
-https://www.bilibili.com/video/BV1bD4y1S7nZ/?share_source=copy_web&vd_source=a9ba073ab382750dccbe80bc2c691e91
+https://www.bilibili.com/video/BV1bD4y1S7nZ/?share_source=copy_web&vd_source=a9ba073ab382750dccbe80bc2c691e91  
+https://www.bilibili.com/video/BV19S4y1M7hm/?spm_id_from=333.999.0.0&vd_source=23508829e27bce925740f90e5cd28cf3
 
 
 
