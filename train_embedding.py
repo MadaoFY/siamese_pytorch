@@ -18,7 +18,7 @@ def img_transform(train=True):
     if train:
         transforms.append(A.RandomBrightnessContrast(p=0.3))
         transforms.append(A.GaussianBlur(p=0.15))
-        # transforms.append(A.ToGray(p=0.1))
+        transforms.append(A.ToGray(p=0.1))
         transforms.append(A.HorizontalFlip(p=0.5))
     transforms.append(A.Resize(args.img_sz, args.img_sz, interpolation=2, p=1))
     transforms.append(A.Normalize())
