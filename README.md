@@ -11,9 +11,10 @@ pip install -r requirements.txt  # install
 ```
 
 ### 数据集下载
-训练集从CASIA-WebFace中抽取，验证集为LFW，已进行清洗和整合  
+训练集从CASIA-WebFace中抽取，验证集为LFW，已进行清洗和整合。  
 从CASIA-WebFace中抽取大约2w张图片，与比赛时用到的数据集数量相当，所提供的数据集里包含划分好训练集、验证集的csv文件。  
-CASIA_WebFace_clean_v1：https://pan.baidu.com/s/1HVv7QNsoKLJgZaA3jI8s6A
+CASIA_WebFace_clean_v1：https://pan.baidu.com/s/15RHXKMYziPIBu4uvmG59Fw  
+提取码: pwni
 
 LFW人脸识别数据集官方下载：http://vis-www.cs.umass.edu/lfw/index.html#download
 
