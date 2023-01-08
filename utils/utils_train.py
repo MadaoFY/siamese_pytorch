@@ -33,7 +33,7 @@ def train_embedding(
         gpu='cuda',
         fp16=True
                     ):
-    if log_save_dir:
+    if log_save_dir is not None:
         writer = SummaryWriter(log_save_dir)
 
     low_loss = 0.0
@@ -136,7 +136,7 @@ def train_embedding(
         valid_acc = sum(valid_accs) / len(valid_accs)
 
 
-        if log_save_dir:
+        if log_save_dir is not None:
             writer.add_scalars('loss', {'train_loss': train_loss, 'val_loss': valid_loss},
                                global_step=epoch)
             writer.add_scalars('acc', {'train_acc': train_acc, 'val_acc': valid_acc},
@@ -158,7 +158,8 @@ def train_embedding(
         if epoch in model_save_epochs:
             torch.save(model.state_dict(), model_save_dir + f'_{epoch}_{valid_acc}.pth')
             print(f'saving model with epoch {epoch}')
-    writer.close()
+    if log_save_dir is not None:
+        writer.close()
     print(f'Done!!!best acc = {best_acc:.5f}')
 
 
@@ -177,7 +178,7 @@ def train_classify(
         gpu='cuda',
         fp16=True
                     ):
-    if log_save_dir:
+    if log_save_dir is not None:
         writer = SummaryWriter(log_save_dir)
 
     best_acc = 0.0
@@ -282,7 +283,7 @@ def train_classify(
         valid_losses = sum(valid_losses) / len(valid_losses)
         valid_acc = sum(valid_accs) / len(valid_accs)
 
-        if log_save_dir:
+        if log_save_dir is not None:
             writer.add_scalars('loss', {'train_loss': train_losses, 'val_loss': valid_losses},
                                global_step=epoch)
             writer.add_scalars('acc', {'train_acc': train_acc, 'val_acc': valid_acc},
@@ -302,5 +303,6 @@ def train_classify(
         if epoch in model_save_epochs:
             torch.save(model.state_dict(), model_save_dir + f'_{epoch}_{valid_acc}.pth')
             print('saving model with epoch {}'.format(epoch))
-    writer.close()
+    if log_save_dir is not None:
+        writer.close()
     print(f'Done!!!best acc = {best_acc:.5f}')
