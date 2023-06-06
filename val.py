@@ -7,7 +7,7 @@ import albumentations as A
 from tqdm.auto import tqdm
 from torch.nn import functional as F
 from albumentations import pytorch as AT
-from models.siamesenet import ss_cspconvnext_t, ss_cspconvnext_s, ss_cspresnet101
+from models.siamesenet import ss_cspconvnext_t, ss_cspconvnext_s
 
 from utils.dataset import ReadDataSet_pairs
 import warnings
@@ -17,7 +17,7 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 
 def val_transform():
     transforms = []
-    transforms.append(A.CenterCrop(96, 96))
+    # transforms.append(A.CenterCrop(96, 96))
     transforms.append(A.Resize(args.img_sz, args.img_sz, interpolation=2, p=1))
     transforms.append(A.Normalize())
     transforms.append(AT.ToTensorV2())
@@ -112,12 +112,12 @@ if __name__ == '__main__':
     parser.add_argument("--model", type=str, default='ss_cspconvnext_t',
                         choices=['ss_cspconvnext_t', 'ss_cspconvnext_s'], help="模型选择")
     # 推理所需图片的根目录
-    parser.add_argument('--img_dir', default='./CASIA_WebFace_clean_v2/img/', help='训练所用图片根目录')
+    parser.add_argument('--img_dir', default='./CASIA_WebFace_clean_v1/img/', help='训练所用图片根目录')
     # 权重
     parser.add_argument('--weights', default='./models_save/ss_cspconvnext_t_29_0.88198.pth',
                         help='模型文件地址; pth,pt,onnx模型')
     # 验证集
-    parser.add_argument('--val_dir', default='./CASIA_WebFace_clean_v2/LfwPairs.csv', help='验证集文档')
+    parser.add_argument('--val_dir', default='./CASIA_WebFace_clean_v1/LfwPairs.csv', help='验证集文档')
     # submission保存位置
     parser.add_argument('--submission_save_dir', default=None, help='submission保存地址')
     # batch_size

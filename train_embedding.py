@@ -15,7 +15,7 @@ from models.siamesenet import ss_cspconvnext_t, ss_cspconvnext_s
 # 数据增强操作
 def img_transform(train=True):
     transforms = []
-    transforms.append(A.CenterCrop(96, 96))
+    # transforms.append(A.CenterCrop(96, 96))
     if train:
         transforms.append(A.RandomBrightnessContrast(p=0.3))
         # transforms.append(A.Rotate(10, p=0.2))
@@ -128,11 +128,11 @@ if __name__ == "__main__":
     # 训练设备类型
     parser.add_argument('--device', default='cuda', help='训练设备类型')
     # 训练所需图片的根目录
-    parser.add_argument('--img_dir', default='./CASIA_WebFace_clean_v2/img/', help='训练所用图片根目录')
+    parser.add_argument('--img_dir', default='./CASIA_WebFace_clean_v1/img/', help='训练所用图片根目录')
     # 训练集
-    parser.add_argument('--train_dir', default='./CASIA_WebFace_clean_v2/WebFace_train_v2.csv', help='训练集文档')
+    parser.add_argument('--train_dir', default='./CASIA_WebFace_clean_v1/WebFace_train_v1.csv', help='训练集文档')
     # 验证集
-    parser.add_argument('--valid_dir', default='./CASIA_WebFace_clean_v2/LfwPairs.csv', help='测试集文档')
+    parser.add_argument('--valid_dir', default='./CASIA_WebFace_clean_v1/LfwPairs.csv', help='测试集文档')
     # 划分是否相同类别的cosine阈值
     parser.add_argument('--cosine_thres', type=float, default=0.5, help='cosine threshold')
     # 图片的size

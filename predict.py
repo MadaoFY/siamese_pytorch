@@ -7,7 +7,7 @@ import albumentations as A
 from tqdm.auto import tqdm
 from torch.nn import functional as F
 from albumentations import pytorch as AT
-from models.siamesenet import ss_cspconvnext_t, ss_cspconvnext_s, ss_cspresnet101
+from models.siamesenet import ss_cspconvnext_t, ss_cspconvnext_s
 
 from utils.dataset import ReadDataSet_pairs
 import warnings
@@ -112,9 +112,9 @@ if __name__ == '__main__':
     parser.add_argument('--weights', default='./models_save/ss_cspconvnext_t_29_0.88198.pth',
                         help='模型文件地址; pth,pt,onnx模型')
     # 推理所需图片的根目录
-    parser.add_argument('--img_dir', default='./CASIA_WebFace_clean_v2/img/', help='训练所用图片根目录')
+    parser.add_argument('--img_dir', default='./CASIA_WebFace_clean_v1/img/', help='训练所用图片根目录')
     # 测试集
-    parser.add_argument('--test_dir', default='./CASIA_WebFace_clean_v2/LfwPairs.csv', help='测试集文档')
+    parser.add_argument('--test_dir', default='./CASIA_WebFace_clean_v1/LfwPairs.csv', help='测试集文档')
     # submission保存位置
     parser.add_argument('--submission_save_dir', default=None, help='submission保存地址')
     # batch_size

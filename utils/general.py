@@ -39,7 +39,7 @@ def resize_image(image, size=256):
         if min(h,w) < size:
             inter_fn = cv.INTER_AREA
         else:
-            inter_fn = cv.INTER_CUBIC
+            inter_fn = cv.INTER_LINEAR
 
         if h >= w:
             scale = size / w
