@@ -18,8 +18,8 @@ class SupConLoss_v1(nn.Module):
     def forward(self, x1, x2, labels1=None, labels2=None):
         device = x1.device
 
-        x1 = F.normalize(x1)
-        x2 = F.normalize(x2)
+        # x1 = F.normalize(x1)
+        # x2 = F.normalize(x2)
         x = torch.cat((x1, x2))
         # 计算相似度
         # sim_matrix = F.cosine_similarity(x.unsqueeze(1), x.unsqueeze(0), dim=-1)/self.temperature
@@ -64,8 +64,8 @@ class SupConLoss_v2(nn.Module):
         device = x1.device
 
         size = x1.shape[-1]
-        x1 = F.normalize(x1)
-        x2 = F.normalize(x2)
+        # x1 = F.normalize(x1)
+        # x2 = F.normalize(x2)
         x = torch.cat((x1, x2))
         x = x.reshape(-1, 1)
         # 计算相似度

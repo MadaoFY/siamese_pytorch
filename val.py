@@ -17,6 +17,7 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 
 def val_transform():
     transforms = []
+    transforms.append(A.CenterCrop(96, 96))
     transforms.append(A.Resize(args.img_sz, args.img_sz, interpolation=2, p=1))
     transforms.append(A.Normalize())
     transforms.append(AT.ToTensorV2())
@@ -52,7 +53,6 @@ def main(args):
             inputs = {model.get_inputs()[0].name: img1.numpy(), model.get_inputs()[1].name: img2.numpy()}
             pred1, pred2 = model.run(None, inputs)
             pred1, pred2 = torch.as_tensor(pred1[0]), torch.as_tensor(pred2[0])
-            pred1, pred2 = F.normalize(pred1), F.normalize(pred2)
 
             pred = F.cosine_similarity(pred1, pred2)
             pred = torch.where(pred < args.cosine_thres, 0.0, 1.0)
@@ -64,10 +64,9 @@ def main(args):
         models_dict = {
             'ss_cspconvnext_t': ss_cspconvnext_t,
             'ss_cspconvnext_s': ss_cspconvnext_s,
-            'ss_cspresnet101': ss_cspresnet101
         }
         ss_model = models_dict[args.model]
-        model = ss_model(embedding_train=True).to(device)
+        model = ss_model(256, False).to(device)
         param_weights = torch.load(weights)
         model.load_state_dict(param_weights, strict=True)
 
@@ -79,12 +78,11 @@ def main(args):
             # We don't need gradient in validation.
             # Using torch.no_grad() accelerates the forward process.
             with torch.no_grad():
-                x1, x2 = model(img1, img2)
-                x1 = F.normalize(x1)
-                x2 = F.normalize(x2)
-                pred = F.cosine_similarity(x1, x2)   # 0.25~0.3
-                # pred = torch.sum(F.mse_loss(x1, x2, reduction='none'), 1)    # 1.5
-                # print(pred)
+                x1 = model.forward(img1, False)
+                x2 = model.forward(img2, False)
+
+                pred = F.cosine_similarity(x1, x2)  # 0.4~0.5
+                # pred = torch.sum(F.mse_loss(x1, x2, reduction='none'), 1)    # 1.0
 
             pred = torch.where(pred < args.cosine_thres, 0., 1.)
             predictions = torch.cat([predictions, pred])
@@ -112,20 +110,20 @@ if __name__ == '__main__':
 
     # 模型
     parser.add_argument("--model", type=str, default='ss_cspconvnext_t',
-                        choices=['ss_cspconvnext_t', 'ss_cspconvnext_s', 'ss_cspresnet101'], help="模型选择")
+                        choices=['ss_cspconvnext_t', 'ss_cspconvnext_s'], help="模型选择")
     # 推理所需图片的根目录
-    parser.add_argument('--img_dir', default='./CASIA_WebFace_clean_v1/img/', help='训练所用图片根目录')
+    parser.add_argument('--img_dir', default='./CASIA_WebFace_clean_v2/img/', help='训练所用图片根目录')
     # 权重
     parser.add_argument('--weights', default='./models_save/ss_cspconvnext_t_29_0.88198.pth',
                         help='模型文件地址; pth,pt,onnx模型')
     # 验证集
-    parser.add_argument('--val_dir', default='./CASIA_WebFace_clean_v1/LfwPairs.csv', help='验证集文档')
+    parser.add_argument('--val_dir', default='./CASIA_WebFace_clean_v2/LfwPairs.csv', help='验证集文档')
     # submission保存位置
     parser.add_argument('--submission_save_dir', default=None, help='submission保存地址')
     # batch_size
     parser.add_argument('--batch_size', type=int, default=256, metavar='N', help='batch size when training')
     # 划分是否相同类别的cosine阈值
-    parser.add_argument('--cosine_thres', type=float, default=0.3, metavar='N', help='threshold of cosine')
+    parser.add_argument('--cosine_thres', type=float, default=0.5, metavar='N', help='threshold of cosine')
     # 图片的size
     parser.add_argument('--img_sz', type=int, default=160, help='train, val image size (pixels)')
 

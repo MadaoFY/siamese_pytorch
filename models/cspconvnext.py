@@ -42,7 +42,6 @@ class CNBlock(nn.Module):
         return x + self.blk(x)
 
 
-
 class csp1(nn.Module):
     def __init__(self, dim, groups, num_block, downsample=True):
         super().__init__()
@@ -70,28 +69,19 @@ class csp1(nn.Module):
 
 
 class convnext(nn.Module):
-    def __init__(self, block, dim, groups, parame, embedding_num=256, embedding_train=False):
+    def __init__(self, block, dim, groups, parame):
         super().__init__()
-        self.embedded_train = embedding_train
-        self.embedding_num = embedding_num
         self.blk = block
         self.parame = parame
         self.conv1 = nn.Sequential(
-            nn.Conv2d(3, dim, kernel_size=4, stride=4),
+            nn.Conv2d(3, dim, kernel_size=4, stride=4, bias=False),
             nn.BatchNorm2d(dim),
             nn.LeakyReLU(inplace=True)
         )
-        self.layer1 = self._make_layer(dim*np.power(2, 0), groups, self.parame[0], True)
+        self.layer1 = self._make_layer(dim*np.power(2, 0), groups, self.parame[0], False)
         self.layer2 = self._make_layer(dim*np.power(2, 1), groups, self.parame[1], True)
         self.layer3 = self._make_layer(dim*np.power(2, 2), groups, self.parame[2], True)
-        self.layer4 = self._make_layer(dim*np.power(2, 3), groups, self.parame[3], False)
-        self.avgpool = nn.AdaptiveAvgPool2d(1)
-        # self.maxpool = nn.AdaptiveMaxPool2d(1)
-        if self.embedded_train:
-            self.dropout = nn.Dropout(0.3)
-            self.mlp1 = nn.Sequential(
-                nn.Linear(dim*np.power(2, 4), self.embedding_num, bias=True),
-            )
+        self.layer4 = self._make_layer(dim*np.power(2, 3), groups, self.parame[3], True)
 
 
         for m in self.modules():
@@ -119,29 +109,20 @@ class convnext(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
-        x = self.avgpool(x)
-        x = torch.flatten(x, 1)
-
-        if self.embedded_train:
-            x = self.dropout(x)
-            x = self.mlp1(x)
 
         return x
 
 
-def cspconvnext_t(dim=96, groups=48, embedding_num=256, embedding_train=False, pretrain_weights=None):
-    # embedded_train的值只能是 True 或者 False
-    assert embedding_train in (True, False)
+def cspconvnext_t(dim=64, groups=32, pretrain_weights=None):
+
     model = convnext(
         csp1,
         dim,
         groups,
-        parame=[3, 3, 9, 3],
-        embedding_num=embedding_num,
-        embedding_train=embedding_train
+        parame=[2, 2, 6, 2],
     )
-    # embedded_train为False并且传入预训练权重,对图片的相似度模型进行训练
-    if embedding_train is False and pretrain_weights is not None:
+    # 传入预训练权重,对图片的相似度模型进行训练
+    if pretrain_weights is not None:
         param_weights = torch.load(pretrain_weights)
         # 筛选出共有层的权重
         load_param_weights = {k: v for k, v in param_weights.items() if k in model.state_dict().keys()}
@@ -150,19 +131,16 @@ def cspconvnext_t(dim=96, groups=48, embedding_num=256, embedding_train=False, p
     return model
 
 
-def cspconvnext_s(dim=96, groups=48, embedding_num=256, embedding_train=False, pretrain_weights=None):
-    # embedded_train的值只能是 True 或者 False
-    assert embedding_train in (True, False)
+def cspconvnext_s(dim=64, groups=32, pretrain_weights=None):
+
     model = convnext(
         csp1,
         dim,
         groups,
-        parame=[3, 3, 27, 3],
-        embedding_num=embedding_num,
-        embedding_train=embedding_train
+        parame=[3, 3, 9, 3],
     )
-    # embedded_train为False并且传入预训练权重,对图片的相似度模型进行训练
-    if embedding_train is False and pretrain_weights is not None:
+    # 传入预训练权重,对图片的相似度模型进行训练
+    if pretrain_weights is not None:
         param_weights = torch.load(pretrain_weights)
         # 筛选出共有层的权重
         load_param_weights = {k: v for k, v in param_weights.items() if k in model.state_dict().keys()}
@@ -172,9 +150,7 @@ def cspconvnext_s(dim=96, groups=48, embedding_num=256, embedding_train=False, p
 
 
 if __name__ == '__main__':
-    model = cspconvnext_t(
-        embedding_train=True,
-    )
+    model = cspconvnext_t()
     # print(model.state_dict())
 
     print(model)

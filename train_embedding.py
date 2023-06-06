@@ -9,18 +9,27 @@ from utils.loss import SupConLoss_v1
 from utils.utils_train import train_embedding
 from utils.general import SineAnnealingLR, same_seeds
 from utils.dataset import ReadDataSet_random, ReadDataSet_pairs
-from models.siamesenet import ss_cspconvnext_t, ss_cspconvnext_s, ss_cspresnet101
+from models.siamesenet import ss_cspconvnext_t, ss_cspconvnext_s
 
 
 # 数据增强操作
 def img_transform(train=True):
     transforms = []
+    transforms.append(A.CenterCrop(96, 96))
     if train:
         transforms.append(A.RandomBrightnessContrast(p=0.3))
-        transforms.append(A.GaussianBlur(p=0.15))
-        transforms.append(A.ToGray(p=0.1))
+        # transforms.append(A.Rotate(10, p=0.2))
+        # transforms.append(A.OneOf([
+        #     A.Emboss(p=1),
+        #     A.Sharpen(p=1)
+        # ], p=0.2))
+        transforms.append(A.OneOf([
+            A.GaussianBlur(p=1),
+            A.MotionBlur(p=1)
+        ], p=0.2))
+        transforms.append(A.ToGray(p=0.05))
         transforms.append(A.HorizontalFlip(p=0.5))
-    transforms.append(A.Resize(args.img_sz, args.img_sz, interpolation=2, p=1))
+    transforms.append(A.Resize(args.img_sz, args.img_sz, interpolation=1, p=1))
     transforms.append(A.Normalize())
     transforms.append(AT.ToTensorV2())
     return A.Compose(transforms)
@@ -33,26 +42,34 @@ def main(args):
     # 读取训练集验证集
     train_csv = pd.read_csv(args.train_dir)
     valid_csv = pd.read_csv(args.valid_dir)
+    # id转类别
+    class_id = {v: k for k, v in enumerate(train_csv["id"].unique())}
+    train_csv["id"] = train_csv["id"].map(class_id)
+    # 图片路径
     img_dir = args.img_dir
 
-    train_dataset = ReadDataSet_random(train_csv, img_dir, img_transform(), positive_rate=1)
+    train_dataset = ReadDataSet_random(train_csv, img_dir, img_transform(), positive_rate=1.0)
     # val_dataset = ReadDataSet_random(valid_csv, img_dir, img_transform(False), positive_rate=0.5)
     val_dataset = ReadDataSet_pairs(valid_csv, img_dir, img_transform(False))
 
     batch_size = args.batch_size
 
     train_loader = torch.utils.data.DataLoader(
-            dataset=train_dataset,
-            batch_size=batch_size,
-            shuffle=True,
-            pin_memory=True,
-        )
+        dataset=train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        pin_memory=True,
+        num_workers=2,
+        persistent_workers=True
+    )
     val_loader = torch.utils.data.DataLoader(
-            dataset=val_dataset,
-            batch_size=batch_size,
-            shuffle=False,
-            pin_memory=True,
-        )
+        dataset=val_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        pin_memory=True,
+        num_workers=2,
+        persistent_workers=True
+    )
 
     # 学习率
     lr = args.lr
@@ -62,7 +79,7 @@ def main(args):
     # 模型权重保存路径
     model_save_dir = args.model_save_dir
     # 创建模型
-    model = ss_cspconvnext_t(embedding_train=True).to(device)
+    model = ss_cspconvnext_t(256, True, num_classes=len(class_id)).to(device)
 
     # 划分是否相同类别的cosine阈值
     cosine_thres = args.cosine_thres
@@ -96,7 +113,7 @@ def main(args):
         model_save_dir,
         log_save_dir=args.log_save_dir,
         model_save_epochs=args.model_save_epochs,
-        gpu=args.gpu,
+        device=args.device,
         fp16=fp16
     )
     print(f'{epochs} epochs completed in {(time.time() - start) / 3600:.3f} hours.')
@@ -109,15 +126,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
 
     # 训练设备类型
-    parser.add_argument('--gpu', default='cuda', help='训练设备类型')
+    parser.add_argument('--device', default='cuda', help='训练设备类型')
     # 训练所需图片的根目录
-    parser.add_argument('--img_dir', default='./CASIA_WebFace_clean_v1/img/', help='训练所用图片根目录')
+    parser.add_argument('--img_dir', default='./CASIA_WebFace_clean_v2/img/', help='训练所用图片根目录')
     # 训练集
-    parser.add_argument('--train_dir', default='./CASIA_WebFace_clean_v1/WebFace_train_v1.csv', help='训练集文档')
+    parser.add_argument('--train_dir', default='./CASIA_WebFace_clean_v2/WebFace_train_v2.csv', help='训练集文档')
     # 验证集
-    parser.add_argument('--valid_dir', default='./CASIA_WebFace_clean_v1/LfwPairs.csv', help='测试集文档')
+    parser.add_argument('--valid_dir', default='./CASIA_WebFace_clean_v2/LfwPairs.csv', help='测试集文档')
     # 划分是否相同类别的cosine阈值
-    parser.add_argument('--cosine_thres', type=float, default=0.3, help='cosine threshold')
+    parser.add_argument('--cosine_thres', type=float, default=0.5, help='cosine threshold')
     # 图片的size
     parser.add_argument('--img_sz', type=int, default=160, help='train, val image size (pixels)')
     # 训练信息保存位置
